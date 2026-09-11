@@ -10,7 +10,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.lang.ScopedValue;
 import java.time.LocalDate;
 import java.util.Optional;
 
@@ -18,11 +17,11 @@ import java.util.Optional;
 public interface HotelMinPriceRepository extends JpaRepository<HotelMinPrice, Long> {
 
     @Query("""
-            SELECT com.codingShuttle.projects.AirBnb.App.dto.HotelPriceDto(i.hotel, AVG(i.price))
+            SELECT new com.codingShuttle.projects.AirBnb.App.dto.HotelPriceDto(i.hotel, AVG(i.price))
             FROM HotelMinPrice i
             WHERE i.hotel.city = :city
                 AND i.date BETWEEN :startDate AND :endDate
-                AND i.hotel.active = true
+                AND i.hotel.isActive = true
             GROUP BY i.hotel
             """)
     Page<HotelPriceDto> findHotelsWithAvailableInventory(

@@ -9,10 +9,11 @@ import com.codingShuttle.projects.AirBnb.App.repository.InventoryRepository;
 import com.codingShuttle.projects.AirBnb.App.strategy.PricingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.logging.log4j.util.PropertySource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -25,7 +26,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-
+@Transactional
 public class PricingUpdateServices {
 
     //Scheduler to update the inventory and HotelMinPrice tables every hour
@@ -36,6 +37,7 @@ public class PricingUpdateServices {
     private final PricingService pricingService;
 
 
+    @Scheduled(cron = "0 0 * * * *") // Every hour
     public void updatePrices(){
         int page = 0;
         int batchSize = 100;
@@ -51,11 +53,18 @@ public class PricingUpdateServices {
 
     }
     private void updateHotelPrices(Hotel hotel) {
+        log.info("Updating prices for hotel ID: {}", hotel.getId());
 
         LocalDate startDate = LocalDate.now();
         LocalDate endDate = startDate.plusYears(1);
 
         List<Inventory> inventoryList = inventoryRepository.findAllByHotelAndDateBetween(hotel, startDate, endDate);
+
+        log.info(
+                "Hotel ID: {}, Inventory records found: {}",
+                hotel.getId(),
+                inventoryList.size()
+        );
 
         updateInventoryPrice(inventoryList);
         updateHotelMinPrice(hotel, inventoryList, startDate, endDate);
