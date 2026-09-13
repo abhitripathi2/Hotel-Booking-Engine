@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 @Transactional
 public class PricingUpdateServices {
 
-    //Scheduler to update the inventory and HotelMinPrice tables every hour
+    //scheduler to update the inventory and HotelMinPrice tables every hour
 
     private final HotelRepository hotelRepository;
     private final InventoryRepository inventoryRepository;
