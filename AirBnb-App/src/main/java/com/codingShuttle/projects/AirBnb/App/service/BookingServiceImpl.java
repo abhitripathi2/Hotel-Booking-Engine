@@ -5,6 +5,8 @@ import com.codingShuttle.projects.AirBnb.App.dto.BookingRequest;
 import com.codingShuttle.projects.AirBnb.App.dto.GuestDto;
 import com.codingShuttle.projects.AirBnb.App.entity.*;
 import com.codingShuttle.projects.AirBnb.App.entity.enums.BookingStatus;
+import com.codingShuttle.projects.AirBnb.App.exception.ResourceNotFoundException;
+import com.codingShuttle.projects.AirBnb.App.exception.UnAuthorisedException;
 import com.codingShuttle.projects.AirBnb.App.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,10 +43,10 @@ public class BookingServiceImpl implements BookingService {
                 bookingRequest.getCheckOutDate());
 
         Hotel hotel = hotelRepository.findById(bookingRequest.getHotelId())
-                .orElseThrow(() -> new RuntimeException("Hotel not found with ID: " + bookingRequest.getHotelId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Hotel not found with ID: " + bookingRequest.getHotelId()));
 
         Room room = roomRepository.findById(bookingRequest.getRoomId())
-                .orElseThrow(() -> new RuntimeException("Room not found with ID: " + bookingRequest.getRoomId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Room not found with ID: " + bookingRequest.getRoomId()));
 
 
         List<Inventory> inventoryList = inventoryRepository.findAndLockAvailableInventory(
@@ -99,7 +101,12 @@ public class BookingServiceImpl implements BookingService {
         log.info("Adding guests for booking with ID: {}", bookingId);
 
         Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new RuntimeException("Booking not found with ID: " + bookingId));
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found with ID: " + bookingId));
+        User user = getCurrentUser();
+
+        if (!user.equals(booking.getUser())) {
+            throw new UnAuthorisedException("Booking do not belong to the current user with ID: " + user.getUser_id());
+        }
 
         if(hasBookingExpired(booking)) {
             throw new IllegalStateException("Booking has expired. Please initiate a new booking.");
@@ -111,7 +118,7 @@ public class BookingServiceImpl implements BookingService {
 
         for(GuestDto guestDto : guestDtoList) {
             Guest guest = modelMapper.map(guestDto, Guest.class);
-            guest.setUser(getCurrentUser());
+            guest.setUser(user);
             guest = guestRepository.save(guest);
             booking.getGuests().add(guest);
         }
@@ -129,9 +136,8 @@ public class BookingServiceImpl implements BookingService {
     }
 
     public User getCurrentUser() {
-        User user = new User();
-        user.setUser_id(1L); //TODO: Replace with actual user ID from authentication context
-        return user;
+
+        return (User) org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 
 }
