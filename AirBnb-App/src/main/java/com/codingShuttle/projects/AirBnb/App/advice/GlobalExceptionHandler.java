@@ -22,6 +22,37 @@ public class GlobalExceptionHandler {
     }
 
 
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ApiResponses<?>> handleAuthenticationException(AuthenticationException exception) {
+        ApiError apiError = ApiError.builder()
+                .status(HttpStatus.UNAUTHORIZED)
+                .message(exception.getMessage())
+                .build();
+
+        return buildErrorResponseEntity(apiError);
+    }
+
+    @ExceptionHandler(JwtException.class)
+    public ResponseEntity<ApiResponses<?>> handleJwtException(JwtException exception) {
+        ApiError apiError = ApiError.builder()
+                .status(HttpStatus.UNAUTHORIZED)
+                .message(exception.getMessage())
+                .build();
+
+        return buildErrorResponseEntity(apiError);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiResponses<?>> handleAccessDeniedException(AccessDeniedException exception) {
+        ApiError apiError = ApiError.builder()
+                .status(HttpStatus.FORBIDDEN)
+                .message(exception.getMessage())
+                .build();
+
+        return buildErrorResponseEntity(apiError);
+    }
+
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponses<?>> handleInternalServerError(Exception exception) {
         ApiError apiError = ApiError.builder()
