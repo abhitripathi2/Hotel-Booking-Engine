@@ -11,6 +11,7 @@ import com.codingShuttle.projects.AirBnb.App.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +31,10 @@ public class BookingServiceImpl implements BookingService {
     private final InventoryRepository inventoryRepository;
     private final ModelMapper modelMapper;
     private final GuestRepository guestRepository;
+    private final CheckOutService checkOutService;
+
+    @Value("${frontend.url}")
+    private String frontendUrl;
 
 
     @Override
@@ -71,11 +76,6 @@ public class BookingServiceImpl implements BookingService {
 
         //create a booking
 
-
-
-        //TODO: calculate dynamic price based on inventory and surge factor. For now, we will use the base price of the room.
-
-
         Booking booking =  Booking.builder()
                 .bookingStatus(BookingStatus.RESERVED)
                 .hotel(hotel)
@@ -104,6 +104,7 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found with ID: " + bookingId));
         User user = getCurrentUser();
 
+
         if (!user.equals(booking.getUser())) {
             throw new UnAuthorisedException("Booking do not belong to the current user with ID: " + user.getUser_id());
         }
@@ -129,6 +130,27 @@ public class BookingServiceImpl implements BookingService {
 
 
         return modelMapper.map(booking, BookingDto.class);
+    }
+
+    @Override
+    public String initiatePayment(Long bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found with ID: " + bookingId));
+        User user = getCurrentUser();
+        if (!user.equals(booking.getUser())) {
+            throw new UnAuthorisedException("Booking do not belong to the current user with ID: " + user.getUser_id());
+        }
+        if(hasBookingExpired(booking)) {
+            throw new IllegalStateException("Booking has expired. Please initiate a new booking.");
+        }
+
+        String sessionUrl = checkOutService.getCheckOutSession(booking,
+                frontendUrl+"/payments/success", frontendUrl+"/payments/failure");
+
+        booking.setBookingStatus(BookingStatus.PAYMENT_PENDING);
+        bookingRepository.save(booking);
+
+        return sessionUrl;
     }
 
     public boolean hasBookingExpired(Booking booking) {

@@ -59,6 +59,6 @@ public class AuthService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
         return jwtService.generateAccessToken(user);
-
+ 
     }
 }

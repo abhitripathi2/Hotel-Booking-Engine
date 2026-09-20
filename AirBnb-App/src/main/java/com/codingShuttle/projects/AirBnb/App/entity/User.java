@@ -48,14 +48,16 @@ public class User implements UserDetails {
 
     @Override
     public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) return true;
+        if (!(o instanceof User)) return false; // Allows Hibernate Proxy subclasses to pass
         User user = (User) o;
-        return Objects.equals(user_id, user.user_id);
+        return user_id != null && Objects.equals(user_id, user.getUser_id());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(user_id);
+        return getClass().hashCode();
+    }
     }
 
-}
+
