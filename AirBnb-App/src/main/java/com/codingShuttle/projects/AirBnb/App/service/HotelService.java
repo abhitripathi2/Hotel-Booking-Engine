@@ -3,6 +3,8 @@ package com.codingShuttle.projects.AirBnb.App.service;
 import com.codingShuttle.projects.AirBnb.App.dto.HotelDto;
 import com.codingShuttle.projects.AirBnb.App.dto.HotelInfoDto;
 
+import java.util.List;
+
 public interface HotelService {
 
 
@@ -15,4 +17,6 @@ public interface HotelService {
 
 
     HotelInfoDto getHotelInfoById(Long hotelId);
+
+    List<HotelDto> getAllHotels();
 }
