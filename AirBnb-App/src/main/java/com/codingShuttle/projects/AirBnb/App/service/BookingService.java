@@ -6,6 +6,7 @@ import com.codingShuttle.projects.AirBnb.App.dto.GuestDto;
 import com.stripe.model.Event;
 
 import java.util.List;
+import java.util.Map;
 
 public interface BookingService {
 
@@ -16,4 +17,8 @@ public interface BookingService {
     String initiatePayment(Long bookingId);
 
     void capturePayments(Event event);
+
+    void cancelBooking(Long bookingId);
+
+    String getBookingStatus(Long bookingId);
 }
