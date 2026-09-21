@@ -43,6 +43,14 @@ public class RoomAdminController {
         return ResponseEntity.noContent().build();
     }
 
+    @PutMapping("/{roomId}")
+    public ResponseEntity<RoomDto> updateRoomById(@PathVariable Long hotelId, @PathVariable Long roomId, @RequestBody RoomDto roomDto) {
+        // Implement the logic to update a specific room for the specified hotel
+        return ResponseEntity.ok(roomService.updateRoomById(hotelId, roomId, roomDto));
+    }
+
+
+
 
 
 }

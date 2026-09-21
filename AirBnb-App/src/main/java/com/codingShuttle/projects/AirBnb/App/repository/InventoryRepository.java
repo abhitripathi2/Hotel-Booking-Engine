@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -124,4 +125,37 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
 
 
     List<Inventory> findAllByHotelAndDateBetween(Hotel hotel, LocalDate startDate, LocalDate endDate);
+
+    List<Inventory> findByRoomOrderByDate(Room room);
+
+
+    @Query("""
+            SELECT i FROM Inventory i
+            WHERE i.room.id = :roomId
+                AND i.date BETWEEN :startDate AND :endDate
+            """)
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    void getInventoryAndLockBeforeUpdate(
+            @Param("roomId") Long roomId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
+
+
+    @Modifying
+    @Query("""
+            UPDATE Inventory i
+            SET i.surgeFactor = :surgeFactor,
+                        i.closed = :closed
+            WHERE i.room.id = :roomId
+                AND i.date BETWEEN :startDate AND :endDate
+            """)
+    void updateInventory(
+            @Param("roomId") Long roomId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            @Param("surgeFactor") BigDecimal surgeFactor,
+            @Param("closed") boolean closed
+    );
+
 }
