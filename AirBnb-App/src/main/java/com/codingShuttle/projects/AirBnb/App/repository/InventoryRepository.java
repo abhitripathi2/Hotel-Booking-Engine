@@ -135,7 +135,7 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
                 AND i.date BETWEEN :startDate AND :endDate
             """)
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    void getInventoryAndLockBeforeUpdate(
+    List<Inventory> getInventoryAndLockBeforeUpdate(
             @Param("roomId") Long roomId,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate
